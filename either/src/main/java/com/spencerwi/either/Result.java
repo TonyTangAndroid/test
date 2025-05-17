@@ -34,7 +34,7 @@ public abstract class Result<R> {
 	 * Factory method for directly creating an `Err<R>` from an exception.
 	 * @param e the exception to wrap in an `Err`
 	 */
-    public static <R> Result<R> err(Exception e){ return new Err<>(e); }
+    public static <R> Result<R> err(Throwable e){ return new Err<>(e); }
 	/**
 	 * Factory method for directly creating an `Ok<R>` from a value.
 	 * @param result the result value to wrap in an `Ok`
@@ -45,7 +45,7 @@ public abstract class Result<R> {
 	 * @return the wrapped exception if this is an `Err`; otherwise, throws a NoSuchElementException (ironically).
 	 * @throws NoSuchElementException if this is an `Ok`
 	 */
-    public abstract Exception getException();
+    public abstract Throwable getThrowable();
 
 	/**
 	 * @return the wrapped value if this is an `Ok`; otherwise, throws a NoSuchElementException.
@@ -64,7 +64,7 @@ public abstract class Result<R> {
 	 * @param transformValue a method that takes the wrapped value and returns a value of type `T`
 	 * @return the return value of `transformValue` if this is an `Ok`, otherwise, the return value of `transformException`
 	 */
-    public abstract <T> T fold(Function<Exception,T> transformException, Function<R,T> transformValue);
+    public abstract <T> T fold(Function<Throwable,T> transformException, Function<R,T> transformValue);
 	/**
 	 * Applies `transformValue` to the wrapped value and wraps the result in an
 	 * `Ok<T>` for further operations *if* this is an `Ok`; otherwise returns
@@ -97,16 +97,16 @@ public abstract class Result<R> {
 	 * this is an `Ok`.  Does not return a value. If you need to extract a value
 	 * using a pair of "extractors", see {@link #fold}.
 	 */
-	public abstract void run(Consumer<Exception> errorHandler, Consumer<R> okHandler);
+	public abstract void run(Consumer<Throwable> errorHandler, Consumer<R> okHandler);
 
     public static class Err<R> extends Result<R> {
-        private Exception ex;
-        private Err(Exception e) {
+        private Throwable ex;
+        private Err(Throwable e) {
             this.ex = e;
         }
 
         @Override
-        public Exception getException() { return this.ex; }
+        public Throwable getThrowable() { return this.ex; }
         @Override
         public R getResult() { throw new NoSuchElementException("Tried to getResult from an Err"); }
 
@@ -116,7 +116,7 @@ public abstract class Result<R> {
         public boolean isOk() { return false; }
 
         @Override
-        public <T> T fold(Function<Exception, T> transformException, Function<R, T> transformValue) {
+        public <T> T fold(Function<Throwable, T> transformException, Function<R, T> transformValue) {
             return transformException.apply(this.ex);
         }
 
@@ -131,7 +131,7 @@ public abstract class Result<R> {
 		@Override
 		public void ifOk(Consumer<R> acceptsOkValue) { /* no-op */ }
 		@Override
-		public void run(Consumer<Exception> errorHandler, Consumer<R> okHandler) {
+		public void run(Consumer<Throwable> errorHandler, Consumer<R> okHandler) {
 			errorHandler.accept(this.ex);
 		}
 
@@ -161,7 +161,7 @@ public abstract class Result<R> {
         }
 
         @Override
-        public Exception getException() { throw new NoSuchElementException("Tried to getException from an Ok"); }
+        public Throwable getThrowable() { throw new NoSuchElementException("Tried to getThrowable from an Ok"); }
         @Override
         public R getResult() { return resultValue; }
 
@@ -171,7 +171,7 @@ public abstract class Result<R> {
         public boolean isOk() { return true; }
 
         @Override
-        public <T> T fold(Function<Exception, T> transformException, Function<R, T> transformValue) {
+        public <T> T fold(Function<Throwable, T> transformException, Function<R, T> transformValue) {
             return transformValue.apply(this.resultValue);
         }
         @Override
@@ -182,7 +182,7 @@ public abstract class Result<R> {
         public <T> Result<T> flatMap(ExceptionThrowingFunction<R, Result<T>> transformValue) {
             try {
                 return transformValue.apply(this.resultValue);
-            } catch(Exception e) {
+            } catch(Throwable e) {
                 return new Err<T>(e);
             }
         }
@@ -191,7 +191,7 @@ public abstract class Result<R> {
 			acceptsOkValue.accept(this.resultValue);
 		}
 		@Override
-		public void run(Consumer<Exception> errorHandler, Consumer<R> okHandler) {
+		public void run(Consumer<Throwable> errorHandler, Consumer<R> okHandler) {
 			okHandler.accept(this.resultValue);
 		}
 
