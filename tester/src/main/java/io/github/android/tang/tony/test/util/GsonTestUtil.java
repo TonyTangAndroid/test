@@ -7,7 +7,7 @@ import com.ryanharter.auto.value.gson.GenerateTypeAdapter;
 public class GsonTestUtil {
 
   public static <T> T from(String resourceFilesPath, Class<T> tClass) {
-    String content = new TestResourcesRule(resourceFilesPath).content();
+    String content = ResourceReader.content(resourceFilesPath);
     return gson().fromJson(content, tClass);
   }
 
