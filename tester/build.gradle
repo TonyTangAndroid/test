@@ -1,6 +1,6 @@
 apply plugin: 'java-library'
 dependencies {
-  api 'com.google.guava:guava:33.4.8-android'
+  api 'com.google.guava:guava:33.4.8-jre'
   api 'androidx.annotation:annotation:1.9.1'
   api 'junit:junit:4.13.2'
   api 'commons-io:commons-io:2.19.0'
